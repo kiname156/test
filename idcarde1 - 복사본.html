@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>주민등록증 모바일 확인 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Malgun Gothic', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            background-color: #f0f2f7;
+            overflow: hidden; /* 스크롤바 제거 */
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            height: 100vh;
+            background: #f0f2f7;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden; /* 사이드메뉴 오버플로우 방지 */
+        }
+        
+        /* 상단 네이비 색상 헤더 추가 */
+        .navy-header {
+            background-color: #0a1a3a;
+            height: 60px;
+            width: 100%;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f0f2f7;
+        }
+        
+        .left-section {
+            display: flex;
+            align-items: center;
+            cursor: pointer; /* 로고 클릭 가능하게 변경 */
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo img {
+            height: 30px;
+        }
+        
+        .logo-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-left: 10px;
+        }
+        
+        .menu-icon {
+            background: none;
+            border: none;
+            color: #333;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .content-area {
+            background-color: #f0f2f7;
+            flex: 1;
+            padding: 5px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden; /* 내부 스크롤 제거 */
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            padding: 25px;
+            text-align: left;
+            position: relative;
+            /* 카드 높이 고정 */
+            height: 550px;
+            overflow: hidden; /* 카드 내부 스크롤 제거 */
+        }
+        
+        .photo-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .photo {
+            width: 160px;
+            height: 200px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .info-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .personal-info {
+            flex: 1;
+        }
+        
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .birth-date {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .address {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .qr-container {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .qr-code {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border: none;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 25px 0 10px;
+        }
+        
+        .progress-bar {
+            height: 5px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .progress {
+            height: 100%;
+            width: 100%;
+            background-color: #2055e4;
+            border-radius: 5px;
+            transition: width 1s linear;
+        }
+        
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .qr-guide {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        /* 버튼 컨테이너 스타일 수정 */
+        .button-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .button {
+            display: block;
+            width: 100%;
+            padding: 15px 0;
+            background-color: #1e5aeb;
+            color: white;
+            border: none;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .gradient-footer {
+            height: 70px;
+            background: linear-gradient(to right, #12d8e5, #7d54c0);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 하단 네이비 색상 푸터 추가 */
+        .navy-footer {
+            background-color: #0a1a3a;
+            height: 60px;
+            width: 100%;
+        }
+        
+        .scrolling-text {
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: scrollText 12s linear infinite;
+        }
+        
+        @keyframes scrollText {
+            0% {
+                left: 100%;
+            }
+            100% {
+                left: -300%;
+            }
+        }
+        
+        /* 상세정보 화면 스타일 수정 */
+        #detailView {
+            display: none;
+            position: relative;
+            padding-bottom: 50px;
+        }
+        
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: calc(100% - 50px);
+        }
+        
+        .detail-photo-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .user-id {
+            font-size: 24px;
+            font-weight: bold;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+        
+        .user-number {
+            font-size: 20px;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        
+        .detail-address {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        
+        .detail-address p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .detail-footer {
+            width: 100%;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .issue-date {
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .issuing-authority-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto 10px;
+        }
+        
+        .issuing-authority {
+            position: relative;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 2; /* Ensure text is on top */
+        }
+        
+        .official-seal {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            top: -20px;
+            right: -80px; /* Position to the right of the text */
+            z-index: 1; /* Ensure seal is behind text */
+        }
+        
+        .official-seal img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9; /* Make slightly transparent if desired */
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* 상세정보 화면 버튼 컨테이너 수정 */
+        .button-container-detail {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* 사이드 메뉴 스타일 - 오른쪽에서 나타나도록 수정 */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -250px; /* 오른쪽으로 다시 위치 변경 */
+            width: 250px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1); /* 그림자 방향 변경 */
+            transition: right 0.3s ease; /* left를 right로 다시 변경 */
+            z-index: 1000;
+        }
+        
+        .side-menu.open {
+            right: 0; /* 오른쪽에서 나타나도록 수정 */
+        }
+        
+        .side-menu-header {
+            background-color: #0a1a3a;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .menu-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .menu-list li {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .menu-list li a {
+            display: block;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .menu-list li a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* 오버레이 배경 - 사이드 메뉴가 열렸을 때 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+        
+        .overlay.open {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 상단 네이비 헤더 추가 -->
+        <div class="navy-header"></div>
+        
+        <div class="top-bar">
+            <div class="left-section" id="logoSection">
+                <div class="logo">
+                    <img src="logo.jpg" alt="정부로고">
+                </div>
+                <span class="logo-text">주민등록증 모바일 확인서비스</span>
+            </div>
+            <button class="menu-icon" id="openMenuBtn">≡</button>
+        </div>
+        
+        <div class="content-area">
+            <!-- 기존 카드 뷰 -->
+            <div class="card" id="mainView">
+                <div class="photo-container">
+                    <div class="photo" id="mainPhoto">
+                        <img src="profile.jpg" alt="신분증 사진" id="profileImg">
+                    </div>
+                </div>
+                
+                <div class="info-container">
+                    <div class="personal-info">
+                        <div class="name">강은비</div>
+                        <div class="birth-date">06.09.09</div>
+                        <div class="address">경기도 고양시</div>
+                    </div>
+                    <div class="qr-container">
+                        <div class="qr-code" id="qrCode"></div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="timeProgress"></div>
+                    </div>
+                </div>
+                
+                <div class="time-info">
+                    <span>남은시간</span>
+                    <span id="timeCounter">30초</span>
+                </div>
+                
+                <div class="qr-guide">QR코드를 리더기에 스캔하세요</div>
+                
+                <div class="button-container">
+                    <button class="button" id="showDetailBtn">상세정보 표시</button>
+                </div>
+            </div>
+            
+            <!-- 상세정보 뷰 - 레이아웃 수정 -->
+            <div class="card" id="detailView">
+                <button class="back-button" id="backToMainBtn">←</button>
+                
+                <div class="detail-content">
+                    <div class="detail-photo-container">
+                        <div class="photo" id="detailPhoto">
+                            <!-- 메인 화면의 사진을 그대로 복사하여 사용할 예정 -->
+                        </div>
+                    </div>
+                    
+                    <div class="user-id">강은비</div>
+                    <div class="user-number">000801-0000000</div>
+                    
+                    <div class="detail-address">
+                        <p>경기도 고양시 일산서구 킨택스로255</p>
+                        <p>대방 디엠시티 스카이뷰 101동 4305호</p>
+                    </div>
+                    
+                    <div class="detail-footer">
+                        <div class="issue-date">2024.09.15</div>
+                        <div class="issuing-authority-container">
+                            <div class="issuing-authority">일산서구청장</div>
+                            <div class="official-seal">
+                                <img src="seal.jpg" alt="공식 인장">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-container-detail">
+                    <button class="button" id="backToMainBtn2">이전으로</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="gradient-footer">
+            <div class="scrolling-text" id="scrollingText">캡쳐방지시스템이 작동중입니다. 캡쳐방지시스템이 작동중입니다. 캡쳐방지시스템이 작동중입니다.</div>
+        </div>
+        
+        <!-- 하단 네이비 푸터 추가 -->
+        <div class="navy-footer"></div>
+    </div>
+    
+    <!-- 사이드메뉴 추가 - 오른쪽에서 나타나도록 수정 -->
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <h3>메뉴</h3>
+            <button class="close-menu" id="closeMenuBtn">×</button>
+        </div>
+        <ul class="menu-list">
+            <li><a href="#">홈</a></li>
+            <li><a href="#">모바일 신분증</a></li>
+            <li><a href="#">정보 업데이트</a></li>
+            <li><a href="#">설정</a></li>
+            <li><a href="#">고객센터</a></li>
+            <li><a href="#">로그아웃</a></li>
+        </ul>
+    </div>
+    
+    <!-- 오버레이 배경 추가 -->
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+        // QR 코드 생성 함수
+        function generateQRCode() {
+            const qrCode = document.getElementById('qrCode');
+            const qrSize = 120;
+            const moduleSize = 4;
+            const modules = Math.floor(qrSize / moduleSize);
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = qrSize;
+            canvas.height = qrSize;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, qrSize, qrSize);
+            
+            function drawFinderPattern(x, y) {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(x, y, 7 * moduleSize, 7 * moduleSize);
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(x + moduleSize, y + moduleSize, 5 * moduleSize, 5 * moduleSize);
+                
+                ctx.fillStyle = 'black';
+                ctx.fillRect(x + 2 * moduleSize, y + 2 * moduleSize, 3 * moduleSize, 3 * moduleSize);
+            }
+            
+            drawFinderPattern(0, 0);
+            drawFinderPattern(qrSize - 7 * moduleSize, 0);
+            drawFinderPattern(0, qrSize - 7 * moduleSize);
+            
+            ctx.fillStyle = 'black';
+            for(let i = 8; i < modules - 8; i++) {
+                if(i % 2 === 0) {
+                    ctx.fillRect(i * moduleSize, 6 * moduleSize, moduleSize, moduleSize);
+                    ctx.fillRect(6 * moduleSize, i * moduleSize, moduleSize, moduleSize);
+                }
+            }
+            
+            ctx.fillStyle = 'black';
+            for (let i = 0; i < modules; i++) {
+                for (let j = 0; j < modules; j++) {
+                    const isInTopLeftFinder = i < 7 && j < 7;
+                    const isInTopRightFinder = i < 7 && j > modules - 8;
+                    const isInBottomLeftFinder = i > modules - 8 && j < 7;
+                    
+                    const isInHorizontalTiming = i === 6 && j >= 8 && j < modules - 8;
+                    const isInVerticalTiming = j === 6 && i >= 8 && i < modules - 8;
+                    
+                    if (!isInTopLeftFinder && !isInTopRightFinder && !isInBottomLeftFinder && 
+                        !isInHorizontalTiming && !isInVerticalTiming) {
+                        if (Math.random() < 0.5) {
+                            ctx.fillRect(j * moduleSize, i * moduleSize, moduleSize, moduleSize);
+                        }
+                    }
+                }
+            }
+            
+            qrCode.style.background = `url(${canvas.toDataURL()})`;
+            qrCode.style.backgroundSize = '100% 100%';
+        }
+        
+        // 타이머 함수 - 남은 시간과 게이지 감소 (30초로 변경)
+        let timerInstance = null; // 전역 타이머 변수
+        
+        function startTimer() {
+            const progressBar = document.getElementById('timeProgress');
+            const timeCounter = document.getElementById('timeCounter');
+            let secondsLeft = 30; // 30초로 수정
+            
+            // 기존 타이머가 있으면 중지
+            if (timerInstance) {
+                clearInterval(timerInstance);
+            }
+            
+            // 초기 설정
+            progressBar.style.width = '100%';
+            timeCounter.textContent = `${secondsLeft}초`;
+            
+            // 타이머 시작
+            timerInstance = setInterval(() => {
+                secondsLeft--;
+                
+                timeCounter.textContent = `${secondsLeft}초`;
+                
+                const percentLeft = (secondsLeft / 30) * 100; // 30초 기준으로 계산
+                progressBar.style.width = `${percentLeft}%`;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInstance);
+                    timeCounter.textContent = '0초';
+                    progressBar.style.width = '0%';
+                    
+                    // 타이머 만료 시 QR코드와 타이머 초기화
+                    resetQRAndTimer();
+                }
+            }, 1000);
+        }
+        
+        // QR코드와 타이머 초기화 함수
+        function resetQRAndTimer() {
+            // 잠시 대기 후 모든 요소 초기화
+            setTimeout(() => {
+                // QR 코드 재생성
+                generateQRCode();
+                
+                // 타이머 초기화 및 재시작
+                startTimer();
+            }, 500);
+        }
+        
+        // 스크롤링 텍스트 설정 - 더 많은 반복
+        function setupScrollingText() {
+            const scrollingTextElement = document.getElementById('scrollingText');
+            // 반복되는 메시지로 설정
+            const message = '캡쳐방지시스템이 작동중입니다. ';
+            let repeatedMessage = '';
+            
+            // 많은 반복을 위해 메시지 확장
+            for (let i = 0; i < 15; i++) {
+                repeatedMessage += message;
+            }
+            
+            scrollingTextElement.textContent = repeatedMessage;
+        }
+        
+        // 상세정보 표시 및 숨김 기능 - 프로필 사진 복사 기능 추가
+        function setupDetailViewToggle() {
+            const showDetailBtn = document.getElementById('showDetailBtn');
+            const backToMainBtn = document.getElementById('backToMainBtn');
+            const backToMainBtn2 = document.getElementById('backToMainBtn2');
+            const mainView = document.getElementById('mainView');
+            const detailView = document.getElementById('detailView');
+            const mainPhoto = document.getElementById('mainPhoto');
+            const detailPhoto = document.getElementById('detailPhoto');
+            
+            showDetailBtn.addEventListener('click', function() {
+                // 메인 화면의 프로필 사진 내용을 상세 화면으로 복사
+                detailPhoto.innerHTML = mainPhoto.innerHTML;
+                
+                mainView.style.display = 'none';
+                detailView.style.display = 'block';
+                // 상세정보 표시 시 타이머 일시 중지
+                if (timerInstance) {
+                    clearInterval(timerInstance);
+                }
+            });
+            
+            // 뒤로가기 버튼과 이전으로 버튼 모두에 이벤트 추가
+            function backToMain() {
+                detailView.style.display = 'none';
+                mainView.style.display = 'block';
+                // 메인 화면으로 돌아왔을 때 타이머 재시작
+                startTimer();
+            }
+            
+            backToMainBtn.addEventListener('click', backToMain);
+            backToMainBtn2.addEventListener('click', backToMain);
+        }
+        
+        // 사이드 메뉴 토글 기능
+        function setupSideMenu() {
+            const openMenuBtn = document.getElementById('openMenuBtn');
+            const closeMenuBtn = document.getElementById('closeMenuBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('overlay');
+            
+            // 메뉴 열기
+            openMenuBtn.addEventListener('click', function() {
+                sideMenu.classList.add('open');
+                overlay.classList.add('open');
+            });
+            
+            // 메뉴 닫기 - X 버튼
+            closeMenuBtn.addEventListener('click', function() {
+                sideMenu.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+            
+            // 메뉴 닫기 - 오버레이 클릭
+            overlay.addEventListener('click', function() {
+                sideMenu.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+        }
+        
+        // 로고 클릭 시 새로고침 기능
+        function setupLogoRefresh() {
+            const logoSection = document.getElementById('logoSection');
+            
+            logoSection.addEventListener('click', function() {
+                // 페이지 새로고침
+                window.location.reload();
+            });
+        }
+        
+        // 이미지 로드 오류 처리 함수
+        function handleImageErrors() {
+            // 모든 이미지에 오류 처리 추가
+            const images = document.querySelectorAll('img');
+            
+            images.forEach(img => {
+                img.onerror = function() {
+                    console.log(`이미지 로드 실패: ${img.src}`);
+                    // 이미지 로드 실패 시 대체 처리
+                    if (img.id === 'profileImg') {
+                        // 프로필 이미지 로드 실패 시, 색상 배경으로 대체
+                        img.style.display = 'none';
+                        img.parentElement.style.backgroundColor = '#ccc';
+                    } else if (img.alt === '공식 인장') {
+                        // 인장 이미지 로드 실패 시, 대체 텍스트로 표시
+                        img.style.display = 'none';
+                        img.parentElement.style.backgroundColor = 'rgba(220, 20, 20, 0.1)';
+                        img.parentElement.style.border = '2px solid rgba(220, 20, 20, 0.3)';
+                        img.parentElement.style.borderRadius = '50%';
+                    } else if (img.alt === '정부로고') {
+                        // 로고 이미지 로드 실패 시, 텍스트로 대체
+                        img.style.display = 'none';
+                        img.parentElement.textContent = '정부24';
+                        img.parentElement.style.fontWeight = 'bold';
+                        img.parentElement.style.color = '#0a1a3a';
+                    }
+                };
+            });
+        }
+        
+        // 페이지 로드 시 실행될 함수들
+        window.onload = function() {
+            generateQRCode();
+            startTimer();
+            setupScrollingText();
+            setupDetailViewToggle();
+            setupSideMenu(); // 사이드 메뉴 기능 초기화
+            setupLogoRefresh(); // 로고 클릭 시 새로고침 기능 초기화
+            handleImageErrors(); // 이미지 로드 오류 처리 추가
+
+            // 확대/축소 방지
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+        };
+    </script>
+</body>
+</html>
